@@ -3,17 +3,21 @@ const express = require('express');
 const router = express.Router();
 const faceapi = require('face-api.js');
 const { listAll, getDownloadURL, ref } = require('firebase/storage');
-const { imageDb } = require('./firebase');
+const imageDb=require("./firebase")
+const path =require('path')
 
 const getDownloadUrls = async () => {
   try {
-    const img = await listAll(ref(imageDb, 'files'));
+   
+    const storageRef = ref(imageDb, 'files'); // Use ref directly on imageDb
+    const img = await listAll(storageRef);
     const uniqueItems = Array.from(new Set(img.items));
     const promises = uniqueItems.map((val) => getDownloadURL(val));
     const urls = await Promise.all(promises);
     return urls;
   } catch (error) {
-    console.error('Error listing files:', error);
+    console.error("Error listing files:", error);
+    console.error("Full error object:", error);
     throw error;
   }
 };
@@ -24,11 +28,12 @@ router.post('/upload', async (req, res) => {
   try {
     const downloadUrls = await getDownloadUrls();
 
+    const modelsPath = path.resolve(__dirname, 'models');
     await Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
-      faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
-      faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
-      faceapi.nets.faceExpressionNet.loadFromUri("/models"),
+      faceapi.nets.tinyFaceDetector.loadFromUri(modelsPath),
+      faceapi.nets.faceLandmark68Net.loadFromUri(modelsPath),
+      faceapi.nets.faceRecognitionNet.loadFromUri(modelsPath),
+      faceapi.nets.faceExpressionNet.loadFromUri(modelsPath),
     ]).then(async () => {
       // Detect faces and landmarks in the image
       const detections = await faceapi
