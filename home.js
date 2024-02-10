@@ -3,12 +3,11 @@ const express = require('express');
 const router = express.Router();
 const faceapi = require('face-api.js');
 const { listAll, getDownloadURL, ref } = require('firebase/storage');
-const imageDb=require("./firebase")
-const path =require('path')
+const imageDb = require("./firebase");
+const path = require('path');
 
 const getDownloadUrls = async () => {
   try {
-   
     const storageRef = ref(imageDb, 'files'); // Use ref directly on imageDb
     const img = await listAll(storageRef);
     const uniqueItems = Array.from(new Set(img.items));
@@ -28,16 +27,15 @@ router.post('/upload', async (req, res) => {
   try {
     const downloadUrls = await getDownloadUrls();
 
-    const modelsPath = path.resolve(__dirname, 'models');
     await Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri(modelsPath),
-      faceapi.nets.faceLandmark68Net.loadFromUri(modelsPath),
-      faceapi.nets.faceRecognitionNet.loadFromUri(modelsPath),
-      faceapi.nets.faceExpressionNet.loadFromUri(modelsPath),
+      faceapi.nets.tinyFaceDetector.loadFromUri("C:/Users/vinay/Desktop/Backend SnapMatch/tiny_face_detector_model-weights_manifest.json"),
+      faceapi.nets.faceLandmark68Net.loadFromUri("C:/Users/vinay/Desktop/Backend SnapMatch/face_landmark_68_model-weights_manifest.json"),
+      faceapi.nets.faceRecognitionNet.loadFromUri("C:/Users/vinay/Desktop/Backend SnapMatch/face_recognition_model-weights_manifest.json"),
+      faceapi.nets.faceExpressionNet.loadFromUri("C:/Users/vinay/Desktop/Backend SnapMatch/face_expression_model-weights_manifest.json"),
     ]).then(async () => {
       // Detect faces and landmarks in the image
-      const detections = await faceapi
-        .detectAllFaces(image, new faceapi.TinyFaceDetectorOptions())
+      console.log(downloadUrls)
+      const detections = await faceapi.detectAllFaces(image, new faceapi.TinyFaceDetectorOptions())
         .withFaceLandmarks()
         .withFaceExpressions();
 
@@ -74,14 +72,18 @@ router.post('/upload', async (req, res) => {
 const findMatchingFace = async (targetDescriptor, downloadUrls) => {
   try {
     for (const url of downloadUrls) {
-      const img = await faceapi.fetchImage(url);
-      const descriptor = await getFaceDescriptor(img);
+      try {
+        console.log('Trying to fetch URL:', url);
+        const img = await fetchFirebaseImage(url);
+        const descriptor = await getFaceDescriptor(img);
+        const distance = faceapi.euclideanDistance(targetDescriptor, descriptor);
 
-      const distance = faceapi.euclideanDistance(targetDescriptor, descriptor);
-
-      // Set a threshold for similarity (you may need to adjust this)
-      if (distance < 0.6) {
-        return url; // Matching face found
+        // Set a threshold for similarity (you may need to adjust this)
+        if (distance < 0.6) {
+          return url; // Matching face found
+        }
+      } catch (error) {
+        console.error(`Error fetching or processing URL ${url}:`, error);
       }
     }
 
@@ -90,6 +92,13 @@ const findMatchingFace = async (targetDescriptor, downloadUrls) => {
     console.error('Error finding matching face:', error);
     throw error;
   }
+};
+
+const fetchFirebaseImage = async (url) => {
+  // Use Firebase fetch API for Firebase Storage URLs
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return await faceapi.bufferToImage(await blob.arrayBuffer());
 };
 
 const getFaceDescriptor = async (img) => {
