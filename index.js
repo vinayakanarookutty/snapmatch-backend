@@ -6,6 +6,7 @@ app.use(bodyparser.urlencoded({extended:true}))
 var home=require('./home')
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const path = require('path');
+
 app.use(cors({
     origin: 'http://localhost:3000',
   }));  
@@ -23,7 +24,7 @@ app.use(cors({
   app.use(express.static('models'));
   // Serve models from the 'models' directory
   app.use('/models', express.static('public'));
-  
+  app.use(express.json());
 
 app.use(bodyparser.json({ limit: '10mb' }));
 app.use(bodyparser.urlencoded({ extended: true, limit: '10mb' }));
