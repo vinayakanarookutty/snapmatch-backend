@@ -14,20 +14,20 @@ const upload = multer({ storage: storage });
 
 const loadFaceAPIModels = async () => {
   await Promise.all([
-    faceapi.nets.tinyFaceDetector.loadFromDisk(
-      "C:/Users/vinay/Desktop/Backend SnapMatch/tiny_face_detector_model-weights_manifest.json"
+    faceapi.nets.tinyFaceDetector.loadFromUri(
+      "./tiny_face_detector_model-weights_manifest.json"
     ),
-    faceapi.nets.faceLandmark68Net.loadFromDisk(
-      "C:/Users/vinay/Desktop/Backend SnapMatch/face_landmark_68_model-weights_manifest.json"
+    faceapi.nets.faceLandmark68Net.loadFromUri(
+      "./face_landmark_68_tiny_model-weights_manifest.json"
     ),
-    faceapi.nets.faceRecognitionNet.loadFromDisk(
-      "C:/Users/vinay/Desktop/Backend SnapMatch/face_recognition_model-weights_manifest.json"
+    faceapi.nets.faceRecognitionNet.loadFromUri(
+      "./face_recognition_model-weights_manifest.json"
     ),
-    faceapi.nets.faceExpressionNet.loadFromDisk(
-      "C:/Users/vinay/Desktop/Backend SnapMatch/face_expression_model-weights_manifest.json"
+    faceapi.nets.faceExpressionNet.loadFromUri(
+      "./face_expression_model-weights_manifest.json"
     ),
-    faceapi.nets.ssdMobilenetv1.loadFromDisk(
-      "C:/Users/vinay/Desktop/Backend SnapMatch/ssd_mobilenetv1_model-weights_manifest.json"
+    faceapi.nets.ssdMobilenetv1.loadFromUri(
+      "./ssd_mobilenetv1_model-weights_manifest.json"
     ),
   ]);
 };
