@@ -7,10 +7,30 @@ const imageDb = require("./firebase");
 const path = require("path");
 var fs = require("fs");
 const multer = require('multer');
-const { createCanvas, loadImage } = require('canvas');
-const { Canvas, Image, ImageData } = require('canvas');
+const tf = require('@tensorflow/tfjs');
+const { Canvas, Image, ImageData } = require("canvas");
 const storage = multer.memoryStorage(); // Use memory storage for receiving image data in memory
 const upload = multer({ storage: storage });
+
+const loadFaceAPIModels = async () => {
+  await Promise.all([
+    faceapi.nets.tinyFaceDetector.loadFromDisk(
+      "C:/Users/vinay/Desktop/Backend SnapMatch/tiny_face_detector_model-weights_manifest.json"
+    ),
+    faceapi.nets.faceLandmark68Net.loadFromDisk(
+      "C:/Users/vinay/Desktop/Backend SnapMatch/face_landmark_68_model-weights_manifest.json"
+    ),
+    faceapi.nets.faceRecognitionNet.loadFromDisk(
+      "C:/Users/vinay/Desktop/Backend SnapMatch/face_recognition_model-weights_manifest.json"
+    ),
+    faceapi.nets.faceExpressionNet.loadFromDisk(
+      "C:/Users/vinay/Desktop/Backend SnapMatch/face_expression_model-weights_manifest.json"
+    ),
+    faceapi.nets.ssdMobilenetv1.loadFromDisk(
+      "C:/Users/vinay/Desktop/Backend SnapMatch/ssd_mobilenetv1_model-weights_manifest.json"
+    ),
+  ]);
+};
 
 const getDownloadUrls = async () => {
   try {
@@ -27,62 +47,77 @@ const getDownloadUrls = async () => {
     throw error;
   }
 };
-
-
-
-// ... (your other imports)
-
-// Modify the dataUrlToImg function to return a canvasasync function dataUrlToImg(image) {
-
-// ... (your other functions)
-
-router.post('/upload', upload.single('image'), async (req, res) => {
-  // const image = new Canvas.Image(); // Create a new Canvas Image
-  // image.src = req.file.buffer; // Set the image source to the buffer of the uploaded file
-
+const downloadFile = async (fileName) => {
   try {
-    await Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromDisk(
-        "C:/Users/vinay/Desktop/Backend SnapMatch/tiny_face_detector_model-weights_manifest.json"
-      ),
-      faceapi.nets.faceLandmark68Net.loadFromDisk(
-        "C:/Users/vinay/Desktop/Backend SnapMatch/face_landmark_68_model-weights_manifest.json"
-      ),
-      faceapi.nets.faceRecognitionNet.loadFromDisk(
-        "C:/Users/vinay/Desktop/Backend SnapMatch/face_recognition_model-weights_manifest.json"
-      ),
-      faceapi.nets.faceExpressionNet.loadFromDisk(
-        "C:/Users/vinay/Desktop/Backend SnapMatch/face_expression_model-weights_manifest.json"
-      ),
-    ]).then(async () => {
-      const downloadUrls = await getDownloadUrls();
-      console.log(downloadUrls);
-     
+    const storageRef = ref(imageDb, "match"); // Use ref directly on imageDb
+    const fileRef = ref(storageRef, fileName); // Assuming fileName is the name of the file you want to download
+    const downloadUrl = await getDownloadURL(fileRef);
 
-      const canvas = createCanvas(1, 1); // Adjust the size as needed
-      const ctx = canvas.getContext('2d');
+    // Now you can use the downloadUrl to download the file using your preferred method
+    // For example, you can use the Fetch API or any other method you prefer
 
-      const image = await loadImage(req.file.buffer);
-      canvas.width = image.width;
-      canvas.height = image.height;
-      ctx.drawImage(image, 0, 0, image.width, image.height);
+    // For demonstration using the Fetch API:
+    // const response = await fetch(downloadUrl);
+    // const blob = await response.blob();
 
-      // Convert canvas to HTMLImageElement
-      const img = new Image();
-      img.src = canvas.toDataURL('image/jpeg');
+    // Now you can use the blob as needed, for example, display the image in an HTML img tag
+    // const imageURL = URL.createObjectURL(blob);
+    // document.getElementById("myImage").src = imageURL;
 
-      const detections = await faceapi
-        .detectAllFaces(img, new faceapi.TinyFaceDetectorOptions())
-        .withFaceLandmarks()
-        .withFaceExpressions();
+    return downloadUrl;
+  } catch (error) {
+    console.error("Error downloading file:", error);
+    throw error;
+  }
+};
 
-      // Handle detections as needed
-      console.log('Face detections:', detections);
 
-      // Send the results back to the React application
-      res.json({ detections });
-      // Rest of your code...
-    });
+const fetchFirebaseImage = async (url) => {
+  try {
+    const { default: fetch } = await import('node-fetch');
+    const sharp = require('sharp');
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image, status: ${response.status}`);
+    }
+
+    const buffer = await response.arrayBuffer();  // Use arrayBuffer instead of buffer
+
+    // Use sharp to decode the image and convert it to TensorFlow.js tensor
+    const image = sharp(Buffer.from(buffer));
+    const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
+
+    // Assuming RGB image
+    const tensor = tf.tensor3d(new Uint8Array(data), [info.height, info.width, 3], 'int32');
+
+    return tensor;
+  } catch (error) {
+    console.error("Error fetching Firebase image:", error);
+    throw error;
+  }
+};
+
+
+
+router.post('/upload', async (req, res) => {
+  try {
+    // Load models
+    await loadFaceAPIModels();
+    // Fetch Firebase image
+    const downloadUrls = await getDownloadUrls();
+    const match = await downloadFile("fixedPath.jpg");
+    const imageTensor = await fetchFirebaseImage(match);
+
+  
+    const detection = await faceapi.detectSingleFace(imageTensor)
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+
+
+    // Handle the results or send a response back to the client
+    res.json({ success: true, detection });
   } catch (error) {
     console.error("Error handling image upload:", error);
     res.status(500).json({ error: "Internal server error." });
