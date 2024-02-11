@@ -104,10 +104,10 @@ const fetchFirebaseImage = async (url) => {
 };
 
 
-const results = [];
 router.post('/upload', async (req, res) => {
   try {
     // Load models
+    const results = [];
     await loadFaceAPIModels();
     // Fetch Firebase image
     const downloadUrls = await getDownloadUrls();
@@ -145,15 +145,20 @@ router.post('/upload', async (req, res) => {
           console.error(`Error processing image ${imageUrl}:`, error);
         }
       }
-
-      console.log("Results:", results);
+      
+      console.log(results);
+      
+      // Send the results back to the client
+      res.status(200).json({results});
+       // Clear the results array
+     
+    } else {
+      res.status(500).json({ error: "NoFaceDetected" });
     }
-
-    // Handle the results or send a response back to the client
-    res.json({ success: true, detection: matchDetection, results });
   } catch (error) {
     console.error("Error handling image upload:", error);
     res.status(500).json({ error: "Internal server error." });
   }
 });
+
 module.exports = router;
