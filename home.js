@@ -83,11 +83,15 @@ const fetchFirebaseImage = async (url) => {
       throw new Error(`Failed to fetch image, status: ${response.status}`);
     }
 
-    const buffer = await response.arrayBuffer();  // Use arrayBuffer instead of buffer
+    const buffer = await response.buffer();
 
     // Use sharp to decode the image and convert it to TensorFlow.js tensor
-    const image = sharp(Buffer.from(buffer));
+    const image = sharp(buffer);
+
+    // Make sure to inspect the actual values and shape of the tensor
     const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
+    console.log('Actual shape:', [info.height, info.width, 3]); // Log the actual shape
+    console.log('Actual number of values:', data.length); // Log the actual number of values
 
     // Assuming RGB image
     const tensor = tf.tensor3d(new Uint8Array(data), [info.height, info.width, 3], 'int32');
@@ -100,7 +104,7 @@ const fetchFirebaseImage = async (url) => {
 };
 
 
-
+const results = [];
 router.post('/upload', async (req, res) => {
   try {
     // Load models
@@ -108,16 +112,45 @@ router.post('/upload', async (req, res) => {
     // Fetch Firebase image
     const downloadUrls = await getDownloadUrls();
     const match = await downloadFile("fixedPath.jpg");
-    const imageTensor = await fetchFirebaseImage(match);
+    const matchTensor = await fetchFirebaseImage(match);
 
-  
-    const detection = await faceapi.detectSingleFace(imageTensor)
+    const matchDetection = await faceapi.detectSingleFace(matchTensor, new faceapi.TinyFaceDetectorOptions())
       .withFaceLandmarks()
       .withFaceDescriptor();
 
+    if (matchDetection) {
+      console.log("Match Descriptor:", matchDetection.descriptor);
+
+      for (const imageUrl of downloadUrls) {
+        try {
+          const imageTensorNew = await fetchFirebaseImage(imageUrl);
+          const detectionArray = await faceapi.detectSingleFace(imageTensorNew, new faceapi.TinyFaceDetectorOptions())
+            .withFaceLandmarks()
+            .withFaceDescriptor();
+
+          if (detectionArray) {
+            // Compare facial descriptors
+            const distance = faceapi.euclideanDistance(matchDetection.descriptor, detectionArray.descriptor);
+
+            // You can adjust the threshold based on your requirement
+            const threshold = 0.6; // Adjust as needed
+
+            // Check if the distance is below the threshold
+            if (distance < threshold) {
+              // Add the result to the array
+              results.push(imageUrl);
+            }
+          }
+        } catch (error) {
+          console.error(`Error processing image ${imageUrl}:`, error);
+        }
+      }
+
+      console.log("Results:", results);
+    }
 
     // Handle the results or send a response back to the client
-    res.json({ success: true, detection });
+    res.json({ success: true, detection: matchDetection, results });
   } catch (error) {
     console.error("Error handling image upload:", error);
     res.status(500).json({ error: "Internal server error." });
