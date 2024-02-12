@@ -4,7 +4,7 @@ const faceapi = require("face-api.js");
 const { listAll, getDownloadURL, ref } = require("firebase/storage");
 const imageDb = require("./firebase");
 const tf = require('@tensorflow/tfjs');
-
+const fetch = require('node-fetch');
 
 
 const loadFaceAPIModels = async () => {
@@ -47,7 +47,7 @@ const downloadFile = async (fileName) => {
 
 const fetchFirebaseImage = async (url) => {
   try {
-    const { default: fetch } = await import('node-fetch');
+  
     const sharp = require('sharp');
 
     const response = await fetch(url);
