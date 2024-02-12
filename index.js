@@ -4,7 +4,6 @@ const cors = require('cors');
 var bodyparser=require('body-parser')
 app.use(bodyparser.urlencoded({extended:true}))
 var home=require('./home')
-const path = require('path'); 
 
   app.use(express.static('public'));
   app.use(express.static('models'));
