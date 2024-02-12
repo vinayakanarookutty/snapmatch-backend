@@ -9,26 +9,15 @@ var fs = require("fs");
 const multer = require('multer');
 const tf = require('@tensorflow/tfjs');
 const { Canvas, Image, ImageData } = require("canvas");
-const storage = multer.memoryStorage(); // Use memory storage for receiving image data in memory
-const upload = multer({ storage: storage });
+
 
 const loadFaceAPIModels = async () => {
   await Promise.all([
-    faceapi.nets.tinyFaceDetector.loadFromUri(
-      "./tiny_face_detector_model-weights_manifest.json"
-    ),
-    faceapi.nets.faceLandmark68Net.loadFromUri(
-      "./face_landmark_68_tiny_model-weights_manifest.json"
-    ),
-    faceapi.nets.faceRecognitionNet.loadFromUri(
-      "./face_recognition_model-weights_manifest.json"
-    ),
-    faceapi.nets.faceExpressionNet.loadFromUri(
-      "./face_expression_model-weights_manifest.json"
-    ),
-    faceapi.nets.ssdMobilenetv1.loadFromUri(
-      "./ssd_mobilenetv1_model-weights_manifest.json"
-    ),
+    faceapi.nets.tinyFaceDetector.loadFromUri("https://d3a4iz6ko6xb2y.cloudfront.net/models/tiny_face_detector_model-weights_manifest.json"),
+    faceapi.nets.faceLandmark68Net.loadFromUri("https://d3a4iz6ko6xb2y.cloudfront.net/models/face_landmark_68_model-weights_manifest.json"),
+    faceapi.nets.faceRecognitionNet.loadFromUri("https://d3a4iz6ko6xb2y.cloudfront.net/models/face_recognition_model-weights_manifest.json"),
+    faceapi.nets.faceExpressionNet.loadFromUri("https://d3a4iz6ko6xb2y.cloudfront.net/models/face_expression_model-weights_manifest.json"),
+    faceapi.nets.ssdMobilenetv1.loadFromUri("https://d3a4iz6ko6xb2y.cloudfront.net/models/ssd_mobilenetv1_model-weights_manifest.json"),
   ]);
 };
 
