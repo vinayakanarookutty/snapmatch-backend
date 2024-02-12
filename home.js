@@ -1,14 +1,10 @@
-const { Router } = require("express");
 const express = require("express");
 const router = express.Router();
 const faceapi = require("face-api.js");
 const { listAll, getDownloadURL, ref } = require("firebase/storage");
 const imageDb = require("./firebase");
-const path = require("path");
-var fs = require("fs");
-const multer = require('multer');
 const tf = require('@tensorflow/tfjs');
-const { Canvas, Image, ImageData } = require("canvas");
+
 
 
 const loadFaceAPIModels = async () => {
@@ -38,21 +34,9 @@ const getDownloadUrls = async () => {
 };
 const downloadFile = async (fileName) => {
   try {
-    const storageRef = ref(imageDb, "match"); // Use ref directly on imageDb
-    const fileRef = ref(storageRef, fileName); // Assuming fileName is the name of the file you want to download
+    const storageRef = ref(imageDb, "match"); 
+    const fileRef = ref(storageRef, fileName); 
     const downloadUrl = await getDownloadURL(fileRef);
-
-    // Now you can use the downloadUrl to download the file using your preferred method
-    // For example, you can use the Fetch API or any other method you prefer
-
-    // For demonstration using the Fetch API:
-    // const response = await fetch(downloadUrl);
-    // const blob = await response.blob();
-
-    // Now you can use the blob as needed, for example, display the image in an HTML img tag
-    // const imageURL = URL.createObjectURL(blob);
-    // document.getElementById("myImage").src = imageURL;
-
     return downloadUrl;
   } catch (error) {
     console.error("Error downloading file:", error);
