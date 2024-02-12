@@ -47,7 +47,7 @@ const downloadFile = async (fileName) => {
 
 const fetchFirebaseImage = async (url) => {
   try {
-    const { default: fetch } = await import('node-fetch');
+    const fetch = require('node-fetch');
     const sharp = require('sharp');
 
     const response = await fetch(url);
