@@ -75,13 +75,14 @@ const fetchFirebaseImage = async (url) => {
     throw error;
   }
 };
+await loadFaceAPIModels();
 
 
 router.post('/upload', async (req, res) => {
   try {
     // Load models
     const results = [];
-    await loadFaceAPIModels();
+ 
     // Fetch Firebase image
     const downloadUrls = await getDownloadUrls();
     const match = await downloadFile("fixedPath.jpg");
