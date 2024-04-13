@@ -75,7 +75,7 @@ const fetchFirebaseImage = async (url) => {
     throw error;
   }
 };
-await loadFaceAPIModels();
+ loadFaceAPIModels();
 
 
 router.post('/upload', async (req, res) => {
