@@ -9,11 +9,11 @@ const tf = require('@tensorflow/tfjs');
 
 const loadFaceAPIModels = async () => {
   await Promise.all([
-    faceapi.nets.tinyFaceDetector.loadFromUri("https://d3a4iz6ko6xb2y.cloudfront.net/models/tiny_face_detector_model-weights_manifest.json"),
-    faceapi.nets.faceLandmark68Net.loadFromUri("https://d3a4iz6ko6xb2y.cloudfront.net/models/face_landmark_68_model-weights_manifest.json"),
-    faceapi.nets.faceRecognitionNet.loadFromUri("https://d3a4iz6ko6xb2y.cloudfront.net/models/face_recognition_model-weights_manifest.json"),
-    faceapi.nets.faceExpressionNet.loadFromUri("https://d3a4iz6ko6xb2y.cloudfront.net/models/face_expression_model-weights_manifest.json"),
-    faceapi.nets.ssdMobilenetv1.loadFromUri("https://d3a4iz6ko6xb2y.cloudfront.net/models/ssd_mobilenetv1_model-weights_manifest.json"),
+    faceapi.nets.tinyFaceDetector.loadFromUri("https://6683d087ca450720253d539e--vermillion-beignet-77520b.netlify.app/models/tiny_face_detector_model-weights_manifest.json"),
+    faceapi.nets.faceLandmark68Net.loadFromUri("https://6683d087ca450720253d539e--vermillion-beignet-77520b.netlify.app/models/face_landmark_68_model-weights_manifest.json"),
+    faceapi.nets.faceRecognitionNet.loadFromUri("https://6683d087ca450720253d539e--vermillion-beignet-77520b.netlify.app/models/face_recognition_model-weights_manifest.json"),
+    faceapi.nets.faceExpressionNet.loadFromUri("https://6683d087ca450720253d539e--vermillion-beignet-77520b.netlify.app/models/face_expression_model-weights_manifest.json"),
+    faceapi.nets.ssdMobilenetv1.loadFromUri("https://6683d087ca450720253d539e--vermillion-beignet-77520b.netlify.app/models/ssd_mobilenetv1_model-weights_manifest.json"),
   ]);
 };
 
