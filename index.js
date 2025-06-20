@@ -14,7 +14,16 @@ var home=require('./home')
 
 app.use(bodyparser.json({ limit: '10mb' }));
 app.use(bodyparser.urlencoded({ extended: true, limit: '10mb' }));
-app.use(cors());
+
+const allowedOrigin = 'https://d1mmkc91smmqma.cloudfront.net';
+app.use(cors({
+  origin: allowedOrigin,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true, // enable if you use cookies or auth headers
+}));
+
+
 app.listen("3001",()=>
 {
     console.log("Server Started")
